@@ -1,7 +1,8 @@
 #! /usr/bin/env python3
+import frame
 
 # Echo client program
-import socket, sys, re, time
+import os, socket, sys, re, time
 sys.path.append("../lib")       # for params
 import params
 
@@ -57,25 +58,16 @@ if delay != 0:
     time.sleep(delay)
     print("done sleeping")
 
-message = ""
-messageLength = 0
-i = 0
+filename = "hello.txt"
+frame.sendMsg(s, filename)
+fd = os.open("./client/" + filename, os.O_RDONLY)
 
+message = ""
 while 1:
-    data = s.recv(1024).decode()
-    while i < len(data):
-        if data[i] == ":":                
-            messageLength = int(data[:i])
-            message = data[i+1:messageLength+i+1]
-            if len(message) < messageLength:
-                break
-            print("Received '%s'" % message)
-            i = 0
-            nextMessageStart = len(str(messageLength)) + messageLength +1
-            data = data[nextMessageStart:]
-        else:
-            i += 1
-    if len(data) == 0:
+    ibuf = os.read(fd,100)
+    sbuf = ibuf.decode()
+    if len(sbuf) == 0:
         break
-print("Zero length read.  Closing")
+    message += sbuf
+frame.sendMsg(s, message)
 s.close()
