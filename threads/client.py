@@ -1,17 +1,17 @@
 #! /usr/bin/env python3
-import frame
-
 # Echo client program
 import os, socket, sys, re, time
 sys.path.append("../lib")       # for params
 import params
+import framed
 
+"""
 switchesVarDefaults = (
     (('-s', '--server'), 'server', "127.0.0.1:50001"),
     (('-d', '--delay'), 'delay', "0"),
     (('-?', '--usage'), "usage", False), # boolean (set if present)
     )
-
+"""
 
 progname = "client"
 #paramMap = params.parseParams(switchesVarDefaults)
@@ -60,10 +60,13 @@ if delay != 0:
     time.sleep(delay)
     print("done sleeping")
 """
+
 message = ""
-frame.sendMsg(s, sys.argv[0].encode())
-frame.sendMsg(s, serverFile.encode())
-response = frame.receiveMsg(s)
+frame = framed.FrameSocket(s)
+frame.sendMsg(sys.argv[0].encode())
+frame.sendMsg(serverFile.encode())
+response = frame.receiveMsg()
+
 if response == "GO":
     fd = os.open("./clientFiles/" + clientFile, os.O_RDONLY)
     while 1:
@@ -73,8 +76,8 @@ if response == "GO":
             break
         message += sbuf
 
-    frame.sendMsg(s, message.encode())
-    result = frame.receiveMsg(s)
+    frame.sendMsg(message.encode())
+    result = frame.receiveMsg()
     os.write(1, result.encode())
 else:
     os.write(1, b"File name alrady exists.\n")
